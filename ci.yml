@@ -1,0 +1,29 @@
+name: Portal quality
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-only-session-secret-not-for-production-2026
+      ADMIN_EMAIL: admin@entrebrasil.local
+      ADMIN_PASSWORD: EntreBrasil!2026
+      DATABASE_PATH: ./data/ci.sqlite
+      SITE_URL: http://127.0.0.1:5173
+      CI: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
